@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Patient Sentiment Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow">Netlify-ready static app</div>
+        <h1>Patient Sentiment Dashboard</h1>
+        <p>
+          Explore classified feedback, compare sentiment mix by hospital, and click a top sentiment driver
+          to filter the comments underneath.
+        </p>
+      </div>
+      <div class="hero-stats">
+        <div class="stat">
+          <span>Feedbacks</span>
+          <strong id="kpiFeedbacks">0</strong>
+        </div>
+        <div class="stat">
+          <span>Sentiments</span>
+          <strong id="kpiSentiments">0</strong>
+        </div>
+        <div class="stat">
+          <span>Positive</span>
+          <strong id="kpiPositive">0%</strong>
+        </div>
+        <div class="stat">
+          <span>Negative</span>
+          <strong id="kpiNegative">0%</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel filters">
+      <div class="panel-head">
+        <div>
+          <h2>Filters</h2>
+          <p>Use these controls to narrow the data before reviewing drivers and comments.</p>
+        </div>
+      </div>
+      <div class="filter-grid">
+        <label>
+          Hospital
+          <select id="hospitalFilter"></select>
+        </label>
+        <label>
+          Source
+          <select id="sourceFilter"></select>
+        </label>
+        <label>
+          Sentiment
+          <select id="polarityFilter"></select>
+        </label>
+        <label>
+          Patient Type
+          <select id="patientTypeFilter"></select>
+        </label>
+        <label>
+          Minimum Confidence
+          <input id="confidenceFilter" type="range" min="0" max="100" value="90" />
+          <div class="range-row">
+            <span>0%</span>
+            <strong id="confidenceValue">90%</strong>
+            <span>100%</span>
+          </div>
+        </label>
+      </div>
+    </section>
+
+    <section class="grid-2">
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Sentiment Breakdown</h2>
+            <p>Current filtered view split into positive, negative, and neutral sentiment.</p>
+          </div>
+        </div>
+        <div class="donut-wrap">
+          <div class="donut" id="donutChart">
+            <div class="donut-center">
+              <strong id="donutValue">0%</strong>
+              <span id="donutLabel">Positive share</span>
+            </div>
+          </div>
+          <div class="bars">
+            <div class="bar-row">
+              <span>Positive</span>
+              <div class="bar"><div id="posBar"></div></div>
+              <strong id="posLabel">0%</strong>
+            </div>
+            <div class="bar-row">
+              <span>Negative</span>
+              <div class="bar"><div id="negBar"></div></div>
+              <strong id="negLabel">0%</strong>
+            </div>
+            <div class="bar-row">
+              <span>Neutral</span>
+              <div class="bar"><div id="neuBar"></div></div>
+              <strong id="neuLabel">0%</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head split">
+          <div>
+            <h2>Snapshot</h2>
+            <p>Useful summary for the currently filtered data.</p>
+          </div>
+          <button id="clearDriver" class="ghost-btn" type="button">Clear Driver Filter</button>
+        </div>
+        <div class="snapshot-grid">
+          <div class="snapshot">
+            <span>Dominant tone</span>
+            <strong id="dominantTone">-</strong>
+          </div>
+          <div class="snapshot">
+            <span>Visible hospitals</span>
+            <strong id="visibleHospitals">0</strong>
+          </div>
+          <div class="snapshot">
+            <span>Visible sources</span>
+            <strong id="visibleSources">0</strong>
+          </div>
+          <div class="snapshot">
+            <span>Visible comments</span>
+            <strong id="visibleComments">0</strong>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head split">
+        <div>
+          <h2>Hospital Sentiment Breakdown</h2>
+          <p>Sorted by the number of visible sentiment rows for each hospital.</p>
+        </div>
+      </div>
+      <div id="hospitalBreakdown" class="list"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <h2>Top Sentiment Drivers</h2>
+          <p>Click a driver to filter the classified comments below.</p>
+        </div>
+      </div>
+      <div class="driver-grid">
+        <div>
+          <h3>Positive</h3>
+          <div id="topPositive" class="driver-list"></div>
+        </div>
+        <div>
+          <h3>Negative</h3>
+          <div id="topNegative" class="driver-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head split">
+        <div>
+          <h2>Classified Patient Comments</h2>
+          <p id="commentNote">Showing non-overall-positive comments with confidence 90% or higher.</p>
+        </div>
+        <div class="chips">
+          <span class="chip" id="activeDriverChip">No driver selected</span>
+        </div>
+      </div>
+      <div id="commentsList" class="comments"></div>
+    </section>
+  </main>
+
+  <script src="patient_sentiment_dashboard_data.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
