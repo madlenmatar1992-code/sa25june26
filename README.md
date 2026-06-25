@@ -17,11 +17,7 @@ The dashboard uses:
 ## Netlify Deployment
 
 1. Connect this GitHub repository to Netlify.
-2. Set the publish directory to:
-
-   `sentiment analysis v3`
-
-3. Deploy the site.
+2. Deploy the site. The repository already includes a root `netlify.toml` that sets the publish directory to `sentiment analysis v3`.
 
 ## Local Preview
 
@@ -33,4 +29,3 @@ The dashboard is populated from:
 
 - `sentiment analysis v3/Sentiment Analysis - Test 4 - Classified.xlsx`
 - sheet 2: `Analyzed Data`
-
