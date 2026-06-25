@@ -333,7 +333,7 @@
         <div class="section-title">
           <div>
             <h2>Sentiment Type Distribution</h2>
-            <p>Distribution of positive, negative, and neutral primary sentiments for the filtered data.</p>
+            <p>Distribution of positive, negative, and neutral sentiments, using total sentiment count as the denominator.</p>
           </div>
           <div class="panel-actions">
             <button class="panel-toggle" id="distributionCountToggle" type="button">Show Counts</button>
@@ -636,24 +636,24 @@
       return Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,10);
     }
 
-    function updateDistribution(sumRows){
-      const total = sumRows.length || 1;
-      const counts = {
-        Positive: sumRows.filter(r => r['Primary Polarity'] === 'Positive').length,
-        Negative: sumRows.filter(r => r['Primary Polarity'] === 'Negative').length,
-        Neutral: sumRows.filter(r => r['Primary Polarity'] === 'Neutral').length
-      };
-      const pos = counts.Positive / total * 100;
-      const neg = counts.Negative / total * 100;
-      const neu = counts.Neutral / total * 100;
-      el.donutChart.style.background = `conic-gradient(var(--pos) 0 ${pos}%, var(--neg) ${pos}% ${pos+neg}%, var(--neu) ${pos+neg}% 100%)`;
-      el.donutCenterValue.textContent = `${pos.toFixed(1)}%`;
-      el.donutCenterLabel.textContent = 'Positive share';
-      el.distPos.style.width = `${pos}%`;
-      el.distNeg.style.width = `${neg}%`;
-      el.distNeu.style.width = `${neu}%`;
-      el.distPosLabel.textContent = fmtPanelShare('distribution', pos, counts.Positive);
-      el.distNegLabel.textContent = fmtPanelShare('distribution', neg, counts.Negative);
+      function updateDistribution(senRows){
+        const total = senRows.length || 1;
+        const counts = {
+          Positive: senRows.filter(r => r['Sentiment Type (Polarity)'] === 'Positive').length,
+          Negative: senRows.filter(r => r['Sentiment Type (Polarity)'] === 'Negative').length,
+          Neutral: senRows.filter(r => r['Sentiment Type (Polarity)'] === 'Neutral').length
+        };
+        const pos = counts.Positive / total * 100;
+        const neg = counts.Negative / total * 100;
+        const neu = counts.Neutral / total * 100;
+        el.donutChart.style.background = `conic-gradient(var(--pos) 0 ${pos}%, var(--neg) ${pos}% ${pos+neg}%, var(--neu) ${pos+neg}% 100%)`;
+        el.donutCenterValue.textContent = `${pos.toFixed(1)}%`;
+        el.donutCenterLabel.textContent = 'Positive sentiment share';
+        el.distPos.style.width = `${pos}%`;
+        el.distNeg.style.width = `${neg}%`;
+        el.distNeu.style.width = `${neu}%`;
+        el.distPosLabel.textContent = fmtPanelShare('distribution', pos, counts.Positive);
+        el.distNegLabel.textContent = fmtPanelShare('distribution', neg, counts.Negative);
       el.distNeuLabel.textContent = fmtPanelShare('distribution', neu, counts.Neutral);
     }
 
@@ -797,7 +797,7 @@
       const filteredAnalyzed = analyzed.filter(sentimentFilter);
       updateKpis(filteredSummary, filteredAnalyzed);
       updatePulse(filteredSummary, filteredAnalyzed);
-      updateDistribution(filteredSummary);
+        updateDistribution(filteredAnalyzed);
       updateHospitalBreakdown(filteredSummary);
       updateSourceBreakdown(filteredSummary);
       updateTopLists(filteredAnalyzed);

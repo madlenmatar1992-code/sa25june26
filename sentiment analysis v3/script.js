@@ -118,9 +118,9 @@
     const positive = counts.Positive;
     const negative = counts.Negative;
     const neutral = counts.Neutral;
-    const positiveShare = positive / totalSum * 100;
-    const negativeShare = negative / totalSum * 100;
-    const neutralShare = neutral / totalSum * 100;
+    const positiveShare = analyzedCounts.Positive / totalSen * 100;
+    const negativeShare = analyzedCounts.Negative / totalSen * 100;
+    const neutralShare = analyzedCounts.Neutral / totalSen * 100;
     const dominant = [['Positive', positive], ['Negative', negative], ['Neutral', neutral]].sort((a, b) => b[1] - a[1])[0][0] || '-';
 
     el.kpiFeedbacks.textContent = new Set(sumRows.map(r => r['Feedback ID'])).size.toLocaleString();
@@ -129,14 +129,14 @@
     el.kpiNegative.textContent = pct(analyzedCounts.Negative, totalSen);
 
     el.donutChart.style.background = `conic-gradient(#10b981 0 ${positiveShare}%, #ef4444 ${positiveShare}% ${positiveShare + negativeShare}%, #f59e0b ${positiveShare + negativeShare}% 100%)`;
-    el.donutValue.textContent = pct(positive, totalSum);
+    el.donutValue.textContent = pct(analyzedCounts.Positive, totalSen);
     el.donutLabel.textContent = 'Positive share';
     el.posBar.style.width = `${positiveShare}%`;
     el.negBar.style.width = `${negativeShare}%`;
     el.neuBar.style.width = `${neutralShare}%`;
-    el.posLabel.textContent = `${pct(positive, totalSum)} (${positive.toLocaleString()})`;
-    el.negLabel.textContent = `${pct(negative, totalSum)} (${negative.toLocaleString()})`;
-    el.neuLabel.textContent = `${pct(neutral, totalSum)} (${neutral.toLocaleString()})`;
+    el.posLabel.textContent = `${pct(analyzedCounts.Positive, totalSen)} (${analyzedCounts.Positive.toLocaleString()})`;
+    el.negLabel.textContent = `${pct(analyzedCounts.Negative, totalSen)} (${analyzedCounts.Negative.toLocaleString()})`;
+    el.neuLabel.textContent = `${pct(analyzedCounts.Neutral, totalSen)} (${analyzedCounts.Neutral.toLocaleString()})`;
 
     el.dominantTone.textContent = dominant;
     el.visibleHospitals.textContent = new Set(sumRows.map(r => r['Unit Name'])).size.toLocaleString();
