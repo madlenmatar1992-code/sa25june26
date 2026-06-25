@@ -6,7 +6,7 @@ Static sentiment dashboard for patient feedback, ready for Netlify deployment.
 
 The app entrypoint is:
 
-- `sentiment analysis v3/index.html`
+- `sentiment analysis v3/patient_sentiment_dashboard.html`
 
 The dashboard uses:
 
@@ -21,7 +21,7 @@ The dashboard uses:
 
 ## Local Preview
 
-Open `sentiment analysis v3/index.html` in a browser, or serve the folder with any static file server.
+Open `sentiment analysis v3/patient_sentiment_dashboard.html` in a browser, or serve the folder with any static file server.
 
 ## Data Source
 
