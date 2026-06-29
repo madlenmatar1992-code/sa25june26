@@ -735,15 +735,14 @@
 
     function updateComments(sumRows){
       const filtered = sumRows.filter(r =>
-        Number(r['Primary Confidence'] || 0) >= 90 &&
-        String(r['Primary Sentiment'] || '').trim() !== 'Overall Positive' &&
+        Number(r['Primary Confidence'] || 0) >= 80 &&
         (!state.selectedDriver || String(r['Primary Sentiment'] || '').trim() === state.selectedDriver)
       );
       if (!filtered.length){
         const note = state.selectedDriver
           ? `for ${state.selectedDriver}`
           : 'for the current filters';
-        el.commentsTable.innerHTML = `<div class="empty">No non-overall-positive comments meet the 90% confidence threshold ${note}.</div>`;
+        el.commentsTable.innerHTML = `<div class="empty">No comments meet the 80% confidence threshold ${note}.</div>`;
         return;
       }
       const filterNote = state.selectedDriver
