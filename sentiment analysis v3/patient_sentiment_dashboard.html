@@ -175,6 +175,7 @@
     .sent-item .bar{height:10px;border-radius:999px;overflow:hidden;background:#eee5ea;margin-top:10px}
     .sent-item .bar > div{height:100%}
     .sent-item.pos .bar > div{background:var(--pos)} .sent-item.neg .bar > div{background:var(--neg)}
+    .sent-item.neu .bar > div{background:var(--neu)}
     .sent-item .share{font-size:12px;font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap}
     .comments{
       display:grid;gap:10px;max-height:460px;overflow:auto;padding-right:4px
@@ -182,8 +183,13 @@
     .comment{
       border:1px solid var(--line);border-radius:16px;padding:14px;background:#fff
     }
-    .comment-top{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+    .comment-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:8px}
     .chips{display:flex;gap:8px;flex-wrap:wrap}
+    .comment-actions{display:flex;justify-content:center;margin-top:12px}
+    .see-more-btn{
+      border:1px solid #d8c7d1;background:#fff;color:var(--brand);
+      border-radius:999px;padding:10px 14px;font-size:12px;font-weight:800;cursor:pointer
+    }
     .chip{
       padding:5px 9px;border-radius:999px;font-size:11px;font-weight:700;
       background:var(--brand-soft);color:var(--brand);border:1px solid #ead3e2
@@ -214,12 +220,27 @@
     }
     .modal-backdrop.open{display:flex}
     .modal{
-      width:min(860px,100%);background:#fff;border-radius:24px;border:1px solid #eadce4;box-shadow:0 26px 80px rgba(0,0,0,.22);overflow:hidden
+      width:min(1200px,calc(100vw - 32px));
+      max-height:calc(100vh - 32px);
+      background:#fff;border-radius:24px;border:1px solid #eadce4;box-shadow:0 26px 80px rgba(0,0,0,.22);
+      overflow:hidden;display:flex;flex-direction:column
     }
     .modal-head,.modal-body{padding:18px 20px}
     .modal-head{display:flex;justify-content:space-between;gap:12px;align-items:center;border-bottom:1px solid #eee5ea;background:#fcfafc}
     .modal-head h3{margin:0;font-size:18px}
-    .modal-body{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .modal-body{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
+      overflow:auto;
+      flex:1;
+      min-height:0;
+    }
+    .neutral-modal-body{grid-template-columns:320px 1fr}
+    .neutral-panel{padding:14px}
+    .neutral-comments-block{grid-column:1 / -1;padding:14px}
+    .neutral-filter-list{display:grid;gap:12px}
+    .neutral-filter-value{font-size:12px;color:var(--muted);font-weight:700;margin-top:6px}
     .panel-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
     .panel-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .panel-toggle{
@@ -250,6 +271,7 @@
       .filters,.kpis,.two-col,.three-col,.donut-wrap,.modal-body,.summary-grid{grid-template-columns:1fr}
       .hero{padding:20px}
       .metric .value{font-size:30px}
+      .modal{width:calc(100vw - 20px);max-height:calc(100vh - 20px)}
     }
   </style>
 </head>
@@ -410,6 +432,7 @@
         </div>
         <div class="panel-actions">
           <button class="panel-toggle" id="driversCountToggle" type="button">Show Counts</button>
+          <button class="panel-toggle" id="neutralDriversBtn" type="button">Neutral Drivers</button>
         </div>
       </div>
       <div class="legend" style="margin-bottom:8px">
@@ -453,6 +476,65 @@
     </div>
   </div>
 
+  <div class="modal-backdrop" id="neutralModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="neutralTitle">
+      <div class="modal-head">
+        <h3 id="neutralTitle">Neutral Sentiment Drivers</h3>
+        <div class="panel-actions">
+          <button class="panel-toggle" id="neutralCountToggle" type="button">Show Counts</button>
+          <button class="btn ghost" id="closeNeutralBtn" type="button">Close</button>
+        </div>
+      </div>
+      <div class="modal-body neutral-modal-body">
+        <div class="card soft neutral-panel">
+          <div class="section-title" style="margin:0 0 10px">
+            <div>
+              <h2>Neutral Filters</h2>
+              <p>Filter the neutral drivers and comments vertically.</p>
+            </div>
+          </div>
+          <div class="neutral-filter-list">
+            <div class="control">
+              <label for="neutralHospitalFilter">Hospital</label>
+              <select id="neutralHospitalFilter"></select>
+            </div>
+            <div class="control">
+              <label for="neutralSourceFilter">Source</label>
+              <select id="neutralSourceFilter"></select>
+            </div>
+            <div class="control">
+              <label for="neutralPolarityFilter">Sentiment Type</label>
+              <select id="neutralPolarityFilter"></select>
+            </div>
+            <div class="control">
+              <label for="neutralConfidenceInput">Confidence</label>
+              <input id="neutralConfidenceInput" type="number" min="0" max="100" value="80" />
+              <div class="neutral-filter-value" id="neutralConfidenceValue">80%</div>
+            </div>
+          </div>
+        </div>
+        <div class="card soft neutral-panel">
+          <div class="section-title" style="margin:0 0 10px">
+            <div>
+              <h2>Top 5 Neutral</h2>
+              <p>Click a driver to filter the neutral classified comments below.</p>
+            </div>
+          </div>
+          <div id="neutralRight" class="sent-list"></div>
+        </div>
+        <div class="card soft neutral-comments-block">
+          <div class="section-title" style="margin:0 0 10px">
+            <div>
+              <h2>Classified Patient Comments</h2>
+              <p>Neutral comments matching the selected neutral driver and active filters.</p>
+            </div>
+          </div>
+          <div id="neutralCommentsTable"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="patient_sentiment_dashboard_data.js"></script>
   <script>
     const sourceData = window.sentimentDashboardData;
@@ -471,6 +553,15 @@
       patientType: 'All',
       confidence: 90,
       selectedDriver: '',
+      commentsExpanded: false,
+      neutralSelectedDriver: '',
+      neutralShowCounts: false,
+      neutralFilters: {
+        hospital: 'All',
+        source: 'All',
+        polarity: 'Neutral',
+        confidence: 80
+      },
       showCounts: {
         distribution: false,
         hospital: false,
@@ -514,6 +605,8 @@
       hospitalCountToggle: document.getElementById('hospitalCountToggle'),
       sourceCountToggle: document.getElementById('sourceCountToggle'),
       driversCountToggle: document.getElementById('driversCountToggle'),
+      neutralDriversBtn: document.getElementById('neutralDriversBtn'),
+      neutralCountToggle: document.getElementById('neutralCountToggle'),
       feedbackCount: document.getElementById('feedbackCount'),
       sentimentCount: document.getElementById('sentimentCount'),
       positiveRate: document.getElementById('positiveRate'),
@@ -541,7 +634,16 @@
       contextBtn: document.getElementById('contextBtn'),
       contextModal: document.getElementById('contextModal'),
       closeContextBtn: document.getElementById('closeContextBtn'),
-      contextBody: document.getElementById('contextBody')
+      contextBody: document.getElementById('contextBody'),
+      neutralModal: document.getElementById('neutralModal'),
+      closeNeutralBtn: document.getElementById('closeNeutralBtn'),
+      neutralHospitalFilter: document.getElementById('neutralHospitalFilter'),
+      neutralSourceFilter: document.getElementById('neutralSourceFilter'),
+      neutralPolarityFilter: document.getElementById('neutralPolarityFilter'),
+      neutralConfidenceInput: document.getElementById('neutralConfidenceInput'),
+      neutralConfidenceValue: document.getElementById('neutralConfidenceValue'),
+      neutralRight: document.getElementById('neutralRight'),
+      neutralCommentsTable: document.getElementById('neutralCommentsTable')
     };
 
     function fillSelect(node, values){
@@ -553,6 +655,26 @@
     fillSelect(el.source, meta.sources);
     fillSelect(el.polarity, meta.polarities);
     fillSelect(el.patientType, meta.patientTypes);
+    fillSelect(el.neutralHospitalFilter, meta.hospitals);
+    fillSelect(el.neutralSourceFilter, meta.sources);
+    fillSelect(el.neutralPolarityFilter, meta.polarities);
+    el.neutralPolarityFilter.value = 'Neutral';
+
+    function syncNeutralControlsFromState(){
+      el.neutralHospitalFilter.value = state.neutralFilters.hospital;
+      el.neutralSourceFilter.value = state.neutralFilters.source;
+      el.neutralPolarityFilter.value = state.neutralFilters.polarity;
+      el.neutralConfidenceInput.value = state.neutralFilters.confidence;
+      el.neutralConfidenceValue.textContent = `${state.neutralFilters.confidence}%`;
+    }
+
+    function syncNeutralStateFromControls(){
+      state.neutralFilters.hospital = el.neutralHospitalFilter.value;
+      state.neutralFilters.source = el.neutralSourceFilter.value;
+      state.neutralFilters.polarity = el.neutralPolarityFilter.value;
+      state.neutralFilters.confidence = Math.min(100, Math.max(0, Number(el.neutralConfidenceInput.value || 0)));
+      el.neutralConfidenceValue.textContent = `${state.neutralFilters.confidence}%`;
+    }
 
     function fmtPanelShare(panel, pct, count){
       const p = `${pct.toFixed(1)}%`;
@@ -627,13 +749,33 @@
       ].join('');
     }
 
-    function topBySentiment(senRows, polarity){
+    function topBySentiment(senRows, polarity, limit = 10){
       const counts = {};
       senRows.filter(r => r['Sentiment Type (Polarity)'] === polarity).forEach(r => {
         const name = r['Sentiment Category'];
         counts[name] = (counts[name] || 0) + 1;
       });
-      return Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,10);
+      return Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0, limit);
+    }
+
+    function renderCommentCards(rows){
+      return rows.map(r => `
+        <div class="comment">
+          <div class="comment-top">
+            <div class="chips">
+              <span class="chip">${cleanText(r['Unit Name'])}</span>
+              <span class="chip">${cleanText(r['Source'])}</span>
+              <span class="chip ${String(r['Primary Polarity']).toLowerCase().slice(0,3)}">${cleanText(r['Primary Sentiment'])}</span>
+              <span class="chip">${cleanText(r['Patient Type'])}</span>
+              <span class="chip">Sentiments Gathered: ${sentimentCountByFeedback.get(r['Feedback ID']) || 1}</span>
+            </div>
+            <div class="chips">
+              <span class="chip">${Number(r['Primary Confidence'] || 0)}%</span>
+            </div>
+          </div>
+          <p>${cleanText(r['Patient Comment'])}</p>
+        </div>
+      `).join('');
     }
 
       function updateDistribution(senRows){
@@ -748,26 +890,80 @@
       const filterNote = state.selectedDriver
         ? `<div class="comment-filter-note">Filtered by top sentiment driver: <strong>${cleanText(state.selectedDriver)}</strong></div>`
         : '';
-      const rows = filtered.slice(0, 200).map(r => `
-        <div class="comment">
-          <div class="comment-top">
-            <div class="chips">
-              <span class="chip">${cleanText(r['Unit Name'])}</span>
-              <span class="chip">${cleanText(r['Source'])}</span>
-              <span class="chip ${String(r['Primary Polarity']).toLowerCase().slice(0,3)}">${cleanText(r['Primary Sentiment'])}</span>
-            </div>
-            <div class="chips">
-              <span class="chip">${cleanText(r['Patient Type'])}</span>
-              <span class="chip">${Number(r['Primary Confidence'] || 0)}%</span>
-            </div>
-          </div>
-          <div class="chips" style="margin-bottom:8px">
-            <span class="chip">Sentiments Gathered: ${sentimentCountByFeedback.get(r['Feedback ID']) || 1}</span>
-          </div>
-          <p>${cleanText(r['Patient Comment'])}</p>
-        </div>
-      `).join('');
-      el.commentsTable.innerHTML = `${filterNote}<div class="comments">${rows}</div>`;
+      const maxRows = state.selectedDriver
+        ? (state.commentsExpanded ? filtered.length : 10)
+        : Math.min(filtered.length, 200);
+      const rows = renderCommentCards(filtered.slice(0, maxRows));
+      const showMore = state.selectedDriver && filtered.length > 10;
+      const actionButton = showMore
+        ? `<div class="comment-actions"><button class="see-more-btn" id="seeMoreCommentsBtn" type="button">${state.commentsExpanded ? 'Show Less' : 'See More'}</button></div>`
+        : '';
+      const visibleCount = state.selectedDriver ? Math.min(maxRows, filtered.length) : Math.min(filtered.length, 200);
+      const countNote = state.selectedDriver
+        ? `<div class="comment-filter-note">Showing ${visibleCount} of ${filtered.length} classified comments for <strong>${cleanText(state.selectedDriver)}</strong>.</div>`
+        : '';
+      el.commentsTable.innerHTML = `${filterNote}${countNote}<div class="comments">${rows}</div>${actionButton}`;
+    }
+
+    function updateNeutralModal(sumRows, senRows){
+      const filters = state.neutralFilters;
+      const filteredSummary = sumRows.filter(r =>
+        (filters.hospital === 'All' || r['Unit Name'] === filters.hospital)
+        && (filters.source === 'All' || r['Source'] === filters.source)
+        && (filters.polarity === 'All' || r['Primary Polarity'] === filters.polarity)
+        && Number(r['Primary Confidence'] || 0) >= filters.confidence
+      );
+      const filteredAnalyzed = senRows.filter(r =>
+        (filters.hospital === 'All' || r['Unit Name'] === filters.hospital)
+        && (filters.source === 'All' || r['Source'] === filters.source)
+        && (filters.polarity === 'All' || r['Sentiment Type (Polarity)'] === filters.polarity)
+        && Number(r['Confidence'] || 0) >= filters.confidence
+      );
+      const neutralOnly = filteredAnalyzed.filter(r => r['Sentiment Type (Polarity)'] === 'Neutral');
+      const neutralCounts = {};
+      neutralOnly.forEach(r => {
+        const name = r['Sentiment Category'];
+        neutralCounts[name] = (neutralCounts[name] || 0) + 1;
+      });
+      const neutralDrivers = Object.entries(neutralCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+      const renderDrivers = (rows) => {
+        if (!rows.length) return '<div class="empty">No neutral drivers found.</div>';
+        const total = neutralOnly.length || 1;
+        return rows.map(([name, count]) => {
+          const driverName = cleanText(name);
+          const pct = count / total * 100;
+          const countSuffix = state.neutralShowCounts ? ` (${count.toLocaleString()})` : '';
+          return `
+            <div class="sent-item clickable neu ${state.neutralSelectedDriver === driverName ? 'active' : ''}" data-neutral-driver="${escapeAttr(driverName)}" title="Click to filter neutral comments by this driver">
+              <div class="row">
+                <div class="t">${driverName}</div>
+                <div class="share">${pct.toFixed(1)}%${countSuffix}</div>
+              </div>
+              <div class="bar"><div style="width:${pct}%"></div></div>
+            </div>`;
+        }).join('');
+      };
+
+      el.neutralRight.innerHTML = renderDrivers(neutralDrivers);
+
+      const neutralBase = filteredSummary.filter(r =>
+        String(r['Primary Polarity'] || '') === 'Neutral' &&
+        (!state.neutralSelectedDriver || String(r['Primary Sentiment'] || '').trim() === state.neutralSelectedDriver)
+      );
+
+      if (!neutralBase.length){
+        const note = state.neutralSelectedDriver
+          ? `for ${state.neutralSelectedDriver}`
+          : 'for the current filters';
+        el.neutralCommentsTable.innerHTML = `<div class="empty">No neutral comments meet the ${filters.confidence}% confidence threshold ${note}.</div>`;
+        return;
+      }
+
+      const filterNote = state.neutralSelectedDriver
+        ? `<div class="comment-filter-note">Filtered by neutral driver: <strong>${cleanText(state.neutralSelectedDriver)}</strong></div>`
+        : '<div class="comment-filter-note">Showing all neutral classified comments for the active filters.</div>';
+      const rows = renderCommentCards(neutralBase.slice(0, 200));
+      el.neutralCommentsTable.innerHTML = `${filterNote}<div class="comments">${rows}</div>`;
     }
 
     function updateContextModal(sumRows, senRows){
@@ -802,6 +998,7 @@
       updateTopLists(filteredAnalyzed);
       updateComments(filteredSummary);
       updateContextModal(filteredSummary, filteredAnalyzed);
+      updateNeutralModal(summary, analyzed);
       el.confidenceValue.innerHTML = `<strong>${state.confidence}%</strong> selected`;
       el.distributionCountToggle.classList.toggle('on', state.showCounts.distribution);
       el.distributionCountToggle.textContent = state.showCounts.distribution ? 'Hide Counts' : 'Show Counts';
@@ -811,6 +1008,8 @@
       el.sourceCountToggle.textContent = state.showCounts.source ? 'Hide Counts' : 'Show Counts';
       el.driversCountToggle.classList.toggle('on', state.showCounts.drivers);
       el.driversCountToggle.textContent = state.showCounts.drivers ? 'Hide Counts' : 'Show Counts';
+      el.neutralCountToggle.classList.toggle('on', state.neutralShowCounts);
+      el.neutralCountToggle.textContent = state.neutralShowCounts ? 'Hide Counts' : 'Show Counts';
     }
 
     function syncStateFromControls(){
@@ -848,15 +1047,51 @@
       state.showCounts.drivers = !state.showCounts.drivers;
       update();
     });
+    el.neutralCountToggle.addEventListener('click', () => {
+      state.neutralShowCounts = !state.neutralShowCounts;
+      update();
+    });
+    el.neutralDriversBtn.addEventListener('click', () => {
+      state.neutralFilters.hospital = state.hospital;
+      state.neutralFilters.source = state.source;
+      state.neutralFilters.polarity = 'Neutral';
+      state.neutralFilters.confidence = Math.max(80, state.confidence);
+      syncNeutralControlsFromState();
+      el.neutralModal.classList.add('open');
+      el.neutralModal.setAttribute('aria-hidden','false');
+      update();
+    });
     const handleDriverClick = (event) => {
       const item = event.target.closest('.sent-item[data-driver]');
       if (!item) return;
       const driver = cleanText(item.dataset.driver || '');
       state.selectedDriver = state.selectedDriver === driver ? '' : driver;
+      state.commentsExpanded = false;
       update();
     };
     el.topPositive.addEventListener('click', handleDriverClick);
     el.topNegative.addEventListener('click', handleDriverClick);
+    el.neutralRight.addEventListener('click', (event) => {
+      const item = event.target.closest('.sent-item[data-neutral-driver]');
+      if (!item) return;
+      const driver = cleanText(item.dataset.neutralDriver || '');
+      state.neutralSelectedDriver = state.neutralSelectedDriver === driver ? '' : driver;
+      update();
+    });
+    [el.neutralHospitalFilter, el.neutralSourceFilter, el.neutralPolarityFilter].forEach(node => node.addEventListener('change', () => {
+      syncNeutralStateFromControls();
+      update();
+    }));
+    el.neutralConfidenceInput.addEventListener('input', () => {
+      syncNeutralStateFromControls();
+      update();
+    });
+    el.commentsTable.addEventListener('click', (event) => {
+      const btn = event.target.closest('#seeMoreCommentsBtn');
+      if (!btn) return;
+      state.commentsExpanded = !state.commentsExpanded;
+      update();
+    });
     el.contextBtn.addEventListener('click', () => {
       el.contextModal.classList.add('open');
       el.contextModal.setAttribute('aria-hidden','false');
@@ -869,6 +1104,16 @@
       if (e.target === el.contextModal) {
         el.contextModal.classList.remove('open');
         el.contextModal.setAttribute('aria-hidden','true');
+      }
+    });
+    el.closeNeutralBtn.addEventListener('click', () => {
+      el.neutralModal.classList.remove('open');
+      el.neutralModal.setAttribute('aria-hidden','true');
+    });
+    el.neutralModal.addEventListener('click', (e) => {
+      if (e.target === el.neutralModal) {
+        el.neutralModal.classList.remove('open');
+        el.neutralModal.setAttribute('aria-hidden','true');
       }
     });
 
